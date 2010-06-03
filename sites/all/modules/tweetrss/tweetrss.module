@@ -1,0 +1,135 @@
+<?php
+// $Id$
+/*
+ * Created on Mar 10, 2010
+ */
+
+/**
+ * Implement hook_cron()
+ *
+ */
+function tweetrss_cron() {
+
+  //return;
+
+  module_load_include('inc', 'twitter');
+
+  $sql = "SELECT a.twitter_uid,
+	  a.screen_name,
+	  f.checked,
+	  i.fid,
+	  i.iid,
+	  i.title,
+	  i.timestamp
+	FROM {twitter_account} a,
+	  {tweetrss_feed} f,
+	  {aggregator_item} i
+	WHERE a.twitter_uid = f.twitter_uid
+	  AND f.fid = i.fid
+	  AND i.iid > f.checked
+	ORDER BY i.fid, i.iid
+	";
+  $results = db_query($sql);
+  while ($row = db_fetch_array($results)) {
+  	$tuid = $row['twitter_uid'];
+  	$title = $row['title'];
+	tweetrss_filter_feed_item($tuid, $title);
+	tweetrss_tweet($tuid, $title);
+	tweetrss_check_row($row);
+  }
+
+}
+
+/**
+ * Filter a row of feed data.  A row contains the following significant fields:
+ *   $tuid - the twitter user id to use for posting the item
+ *   $title - the rss feed title that will be used to compose the tweet
+ *
+ * If a row is not to be tweeted, the $title will be set null;
+ */
+ function tweetrss_filter_feed_item($tuid, &$data) {
+
+ 	$include = FALSE;
+ 	$frenchdays = array(
+ 		'Monday'	=> 'Lundi',
+ 		'Tuesday'	=> 'Mardi',
+ 		'Wednesday'	=> 'Mercredi',
+ 		'Thursday'	=> 'Jeudi',
+ 		'Friday'	=> 'Vendredi',
+ 		'Saturday'	=> 'Samedi',
+ 		'Sunday'	=> 'Dimanche'
+ 	);
+ 	$today = date('l');
+ 	$ftoday = $frenchdays[$today];
+	$nowplus = mktime(0, 0, 0, date("m"), date("d")+1, date("y"));
+	$tomorrow = date("l",$nowplus);
+ 	$ftomorrow = $frenchdays[$tomorrow];
+ 	$daymatch = "/$today|$tomorrow|$ftoday|$ftomorrow/i";
+	if (preg_match("/Current Conditions|Conditions actuelles/",$data)) {
+	  $include = TRUE;
+	}
+	else if (preg_match($daymatch, $data)) {
+	  $include = TRUE;
+	}
+	if (!$include) {
+	  $data = NULL;
+	}
+ }
+
+/**
+ * Given a twitter user id ($tuid), post a string ($tweetstring)
+ * to twitter.
+ */
+function tweetrss_tweet($tuid, $tweetstring) {
+  if (empty($tuid) || empty($tweetstring)) {
+    return;
+  }
+  $user = twitter_account_load($tuid);
+  twitter_set_status($user, $tweetstring);
+}
+
+/**
+ * Update a row to mark the last feed row we tweeted.
+ */
+function tweetrss_check_row($row) {
+  $tuid = $row['twitter_uid'];
+  $iid = $row['iid'];
+  $fid = $row['fid'];
+  $sql = "UPDATE {tweetrss_feed} " .
+  		" SET checked = $iid " .
+  		" WHERE twitter_uid = $tuid " .
+  		" AND fid = $fid ";
+  update_sql($sql);
+}
+
+/**
+ * Implement hook_perm()
+ */
+function tweetrss_perm() {
+  return array('administer tweetrss');
+}
+
+/**
+ * Implement hook_menu()
+ */
+function tweetrss_menu() {
+  $items = array();
+  $items['admin/settings/tweetrss'] = array(
+  	'title' => 'Tweet RSS Setup',
+  	'description' => 'Tweet RSS Setup Screen',
+  	'page callback' => 'drupal_get_form',
+  	'page arguments' => array('tweetrss_admin_form'),
+  	'access arguments' => array('administer tweetrss'),
+  	'file' => 'tweetrss.pages.inc'
+  	);
+  return $items;
+}
+
+function tweetrss_theme() {
+  return array(
+    'tweetrss_admin_form' => array(
+      'arguments' => array('form' => NULL),
+    )
+  );
+}
+

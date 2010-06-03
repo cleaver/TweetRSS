@@ -1,0 +1,7 @@
+; $Id$
+
+name = Tweet RSS
+description = Process an RSS feed and post to Twitter.
+dependencies[] = twitter
+dependencies[] = aggregator
+core = 6.x
