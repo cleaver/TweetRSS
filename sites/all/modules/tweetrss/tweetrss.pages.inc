@@ -1,20 +1,22 @@
 <?php
-/*
+// $Id$
+/**
+ * @file
  * Created on Apr 6, 2010
  *
  * To change the template for this generated file go to
  * Window - Preferences - PHPeclipse - PHP - Code Templates
  */
 
-function tweetrss_admin_form($form_state) {
+function tweetrss_admin_form(&$form_state) {
   $form = array();
   $form['feeds'] = array();
   $sql = "SELECT r.twitter_uid, a.screen_name, r.fid, f.title, r.checked, r.feedurl
-			FROM {tweetrss_feed} r,
-			  {twitter_account} a,
-			  {aggregator_feed} f
-			WHERE r.twitter_uid = a.twitter_uid
-			  AND r.fid = f.fid";
+      FROM {tweetrss_feed} r,
+        {twitter_account} a,
+        {aggregator_feed} f
+      WHERE r.twitter_uid = a.twitter_uid
+        AND r.fid = f.fid";
   $results = db_query($sql);
   while ($feed = db_fetch_array($results)) {
     $form['feeds'][] = _tweetrss_feed_row($feed);
@@ -22,7 +24,7 @@ function tweetrss_admin_form($form_state) {
   $form['feeds'][] = _tweetrss_feed_row(array());
 
   if (!empty($form)) {
-  	$form['#tree'] = TRUE;
+    $form['#tree'] = TRUE;
     $form['buttons']['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save changes'),
@@ -54,35 +56,35 @@ function _tweetrss_feed_row($feed) {
     '#maxlength' => 255
   );
   if (empty($feed)) {
-  	// new record
-	$form['new'] = array(
-	  '#type' => 'value',
-	  '#value' => TRUE
-	);
-	$form['twitter_uid'] = array(
-	  '#type' => 'select',
-	  '#options' => _get_account_list()
-	);
-	$form['fid'] = array(
-	  '#type' => 'select',
-	  '#options' => _get_feed_list()
-	);
+    // new record
+  $form['new'] = array(
+    '#type' => 'value',
+    '#value' => TRUE
+  );
+  $form['twitter_uid'] = array(
+    '#type' => 'select',
+    '#options' => _get_account_list()
+  );
+  $form['fid'] = array(
+    '#type' => 'select',
+    '#options' => _get_feed_list()
+  );
   }
   else {
-  	// existing record
-	$form['new'] = array(
-	  '#type' => 'value',
-	  '#value' => FALSE
-	);
-	$form['twitter_uid'] = array(
-	  '#type' => 'value',
-	  '#value' => $feed['twitter_uid']
-	);
-	$form['fid'] = array(
-	  '#type' => 'value',
-	  '#value' => $feed['fid']
-	);
-	$form['delete'] = array(
+    // existing record
+  $form['new'] = array(
+    '#type' => 'value',
+    '#value' => FALSE
+  );
+  $form['twitter_uid'] = array(
+    '#type' => 'value',
+    '#value' => $feed['twitter_uid']
+  );
+  $form['fid'] = array(
+    '#type' => 'value',
+    '#value' => $feed['fid']
+  );
+  $form['delete'] = array(
       '#type' => 'checkbox'
     );
   }
@@ -147,7 +149,7 @@ function theme_tweetrss_admin_form($form) {
 
 function tweetrss_admin_form_submit($form, &$form_state) {
   $feeds = $form_state['values']['feeds'];
-  foreach($feeds as $feed) {
+  foreach ($feeds as $feed) {
     if (empty($feed['delete'])) {
       tweetrss_feed_save($feed);
     }
@@ -164,8 +166,8 @@ dsm($feed);
     // insert new record
     if ($feed['twitter_uid'] > 0 && $feed['fid'] > 0) {
       $sql = "INSERT INTO {tweetrss_feed}" .
-    		" (twitter_uid, fid, feedurl, checked) " .
-    		" VALUES (%d, %d, '%s', %d)";
+        " (twitter_uid, fid, feedurl, checked) " .
+        " VALUES (%d, %d, '%s', %d)";
       db_query($sql, $feed['twitter_uid'], $feed['fid'], $feed['feedurl'], $feed['checked']);
     }
   }
@@ -177,7 +179,7 @@ dsm($feed);
 function tweetrss_feed_delete($feed) {
   // delete the record
   $sql = "DELETE FROM {tweetrss_feed}" .
-  		" WHERE twitter_uid = %d" .
-  		" AND fid = %d";
+      " WHERE twitter_uid = %d" .
+      " AND fid = %d";
   db_query($sql, $feed['twitter_uid'], $feed['fid']);
 }
