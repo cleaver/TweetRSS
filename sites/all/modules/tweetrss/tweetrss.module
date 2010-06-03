@@ -110,15 +110,32 @@ function tweetrss_perm() {
  * Implement hook_menu()
  */
 function tweetrss_menu() {
-  $items = array();
+
+watchdog('tweetrss', 'menu');
+
   $items['admin/settings/tweetrss'] = array(
-    'title' => 'Tweet RSS Setup',
-    'description' => 'Tweet RSS Setup Screen',
+    'title' => 'Tweet RSS',
+    'description' => 'Tweet RSS setup screen',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('tweetrss_admin_form'),
     'access arguments' => array('administer tweetrss'),
     'file' => 'tweetrss.pages.inc'
     );
+//  $items['admin/settings/tweetrss/list'] = array(
+//    'title' => 'List',
+//    'description' => 'Tweet RSS setup screen',
+//    'type' => MENU_DEFAULT_LOCAL_TASK,
+//    'weight' => -10,
+//  );
+//  $items['admin/settings/tweetrss/add'] = array(
+//    'title' => 'Add Feed',
+//    'description' => 'Add Tweet RSS feed',
+//    'page callback' => 'drupal_get_form',
+//    'page arguments' => array('tweet_rss_add_form'),
+//    'access arguments' => array('administer tweetrss'),
+//    'file' => 'tweetrss.pages.inc',
+//    'type' => MENU_LOCAL_TASK,
+//  );
   return $items;
 }
 
