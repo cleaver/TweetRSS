@@ -19,17 +19,11 @@ watchdog('tweetrss', 'admin form');
         AND r.fid = f.fid
       ORDER BY a.screen_name";
   $results = db_query($sql);
-  while ($feed = db_fetch_array($results)) {
-    $form['feeds'][] = _tweetrss_feed_row($feed);
+  while ($row = db_fetch_array($results)) {
+    $form['feeds'][] = _tweetrss_feed_row($row);
   }
-  $form['feeds'][] = _tweetrss_feed_row(array());
+//  $form['feeds'][] = _tweetrss_feed_row(array());
 
-  if (!empty($form)) {
-    $form['buttons']['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Save changes'),
-    );
-  }
   dsm($form);
   return $form;
 }
@@ -43,51 +37,54 @@ function _tweetrss_feed_row($feed) {
   $form['title'] = array(
     '#value' => $feed['title']
   );
-  $form['checked'] = array(
-    '#type' => 'textfield',
-    '#default_value' => $feed['checked'],
-    '#size' => 9,
-    '#maxlength' => 9
+  $form['edit_link'] = array(
+    '#value' => $feed['tfid'],
   );
-  $form['feedurl'] = array(
-    '#type' => 'textfield',
-    '#default_value' => $feed['feedurl'],
-    '#size' => 50,
-    '#maxlength' => 255
-  );
-  if (empty($feed)) {
-    // new record
-  $form['new'] = array(
-    '#type' => 'value',
-    '#value' => TRUE
-  );
-  $form['twitter_uid'] = array(
-    '#type' => 'select',
-    '#options' => _get_account_list()
-  );
-  $form['fid'] = array(
-    '#type' => 'select',
-    '#options' => _get_feed_list()
-  );
-  }
-  else {
-    // existing record
-  $form['new'] = array(
-    '#type' => 'value',
-    '#value' => FALSE
-  );
-  $form['twitter_uid'] = array(
-    '#type' => 'value',
-    '#value' => $feed['twitter_uid']
-  );
-  $form['fid'] = array(
-    '#type' => 'value',
-    '#value' => $feed['fid']
-  );
-  $form['delete'] = array(
-      '#type' => 'checkbox'
-    );
-  }
+//  $form['checked'] = array(
+//    '#type' => 'textfield',
+//    '#default_value' => $feed['checked'],
+//    '#size' => 9,
+//    '#maxlength' => 9
+//  );
+//  $form['feedurl'] = array(
+//    '#type' => 'textfield',
+//    '#default_value' => $feed['feedurl'],
+//    '#size' => 50,
+//    '#maxlength' => 255
+//  );
+//  if (empty($feed)) {
+//    // new record
+//  $form['new'] = array(
+//    '#type' => 'value',
+//    '#value' => TRUE
+//  );
+//  $form['twitter_uid'] = array(
+//    '#type' => 'select',
+//    '#options' => _get_account_list()
+//  );
+//  $form['fid'] = array(
+//    '#type' => 'select',
+//    '#options' => _get_feed_list()
+//  );
+//  }
+//  else {
+//    // existing record
+//  $form['new'] = array(
+//    '#type' => 'value',
+//    '#value' => FALSE
+//  );
+//  $form['twitter_uid'] = array(
+//    '#type' => 'value',
+//    '#value' => $feed['twitter_uid']
+//  );
+//  $form['fid'] = array(
+//    '#type' => 'value',
+//    '#value' => $feed['fid']
+//  );
+//  $form['delete'] = array(
+//      '#type' => 'checkbox'
+//    );
+//  }
   return $form;
 }
 
@@ -112,7 +109,7 @@ function _get_account_list() {
 }
 
 function theme_tweetrss_admin_form($form) {
-return drupal_render($form);
+//return drupal_render($form);
 
   $header = array(
     t('Twitter Account'),
@@ -124,24 +121,11 @@ return drupal_render($form);
 
   foreach (element_children($form['feeds']) as $key) {
     $element = &$form['feeds'][$key];
-    if ($element['new']['#value']) {
-    $row = array(
-      drupal_render($element['twitter_uid']),
-      drupal_render($element['fid']),
-      drupal_render($element['checked']),
-      drupal_render($element['feedurl']),
-      drupal_render($element['delete']),
-    );
-    }
-    else {
     $row = array(
       drupal_render($element['screen_name']),
       drupal_render($element['title']),
-      drupal_render($element['checked']),
-      drupal_render($element['feedurl']),
-      drupal_render($element['delete']),
+      drupal_render($element['edit_link']),
     );
-    }
     $rows[] = $row;
   }
   $output = theme('table', $header, $rows);
