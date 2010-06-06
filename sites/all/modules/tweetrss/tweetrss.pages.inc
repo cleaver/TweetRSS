@@ -5,7 +5,9 @@
  * To change the template for this generated file go to
  * Window - Preferences - PHPeclipse - PHP - Code Templates
  */
-
+/**
+ * Build feed list form
+ */
 function tweetrss_admin_form($form_state) {
 watchdog('tweetrss', 'admin form');
 
@@ -168,4 +170,31 @@ function tweetrss_feed_delete($feed) {
       " WHERE twitter_uid = %d" .
       " AND fid = %d";
   db_query($sql, $feed['twitter_uid'], $feed['fid']);
+}
+
+/**
+ * Build feed add / edit form
+ */
+function tweetrss_add_form($form_state, $tfid=0) {
+  $form['twitter_uid'] = array(
+    '#type' => 'select',
+    '#title' => t('Twitter account'),
+    '#options' => _get_account_list(),
+  );
+  $form['fid'] = array(
+    '#type' => 'select',
+    '#title' => t('RSS feed'),
+    '#options' => _get_feed_list(),
+  );
+  $form['regex_match'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Regex match'),
+    '#size' => 70,
+  );
+  $form['regex_replace'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Regex replace'),
+    '#size' => 70,
+  );
+  return $form;
 }

@@ -136,6 +136,15 @@ watchdog('tweetrss', 'menu');
     'file' => 'tweetrss.pages.inc',
     'type' => MENU_LOCAL_TASK,
   );
+  $items['admin/settings/tweetrss/edit/%'] = array(
+//    'title' => 'Add Feed',
+//    'description' => 'Add Tweet RSS feed',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tweetrss_add_form',arg(4)),
+    'access arguments' => array('administer tweetrss'),
+    'file' => 'tweetrss.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
