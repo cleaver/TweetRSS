@@ -137,10 +137,8 @@ watchdog('tweetrss', 'menu');
     'type' => MENU_LOCAL_TASK,
   );
   $items['admin/settings/tweetrss/edit/%'] = array(
-//    'title' => 'Add Feed',
-//    'description' => 'Add Tweet RSS feed',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('tweetrss_add_form',arg(4)),
+    'page arguments' => array('tweetrss_add_form', 4),
     'access arguments' => array('administer tweetrss'),
     'file' => 'tweetrss.pages.inc',
     'type' => MENU_CALLBACK,
@@ -151,6 +149,9 @@ watchdog('tweetrss', 'menu');
 function tweetrss_theme() {
   return array(
     'tweetrss_admin_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'tweerss_add_form' => array(
       'arguments' => array('form' => NULL),
     )
   );

@@ -40,7 +40,7 @@ function _tweetrss_feed_row($feed) {
     '#value' => $feed['title']
   );
   $form['edit_link'] = array(
-    '#value' => $feed['tfid'],
+    '#value' => l('Edit', "admin/settings/tweetrss/edit/{$feed['tfid']}"),
   );
 //  $form['checked'] = array(
 //    '#type' => 'textfield',
@@ -90,7 +90,7 @@ function _tweetrss_feed_row($feed) {
   return $form;
 }
 
-function _get_feed_list() {
+function _tweetrss_get_feed_list() {
   $list = array(-1 => '---');
   $sql = "SELECT fid, title FROM {aggregator_feed}";
   $results = db_query($sql);
@@ -100,7 +100,7 @@ function _get_feed_list() {
   return $list;
 }
 
-function _get_account_list() {
+function _tweetrss_get_account_list() {
   $list = array(-1 => '---');
   $sql = "SELECT twitter_uid, screen_name FROM {twitter_account}";
   $results = db_query($sql);
@@ -135,6 +135,14 @@ function theme_tweetrss_admin_form($form) {
   return $output;
 }
 
+function theme_tweetrss_add_form($form) {
+  $output = drupal_render($form);
+  return $output;
+}
+
+/**
+ * Handle submitted tweetrss admin Form
+ */
 function tweetrss_admin_form_submit($form, &$form_state) {
   $feeds = $form_state['values']['feeds'];
   foreach($feeds as $feed) {
@@ -147,23 +155,69 @@ function tweetrss_admin_form_submit($form, &$form_state) {
   }
 }
 
+/**
+ * Save feed information to database
+ */
 function tweetrss_feed_save($feed) {
-dsm($feed);
 
-  if ($feed['new'] == TRUE) {
+  if ($feed['tfid'] == 0) {
     // insert new record
     if ($feed['twitter_uid'] > 0 && $feed['fid'] > 0) {
-      $sql = "INSERT INTO {tweetrss_feed}" .
-        " (twitter_uid, fid, feedurl, checked) " .
-        " VALUES (%d, %d, '%s', %d)";
-      db_query($sql, $feed['twitter_uid'], $feed['fid'], $feed['feedurl'], $feed['checked']);
+      $sql =
+        "INSERT INTO {tweetrss_feed} (
+          twitter_uid,
+          fid,
+          regex_match,
+          regex_replace,
+          checked )
+        VALUES (%d, %d, '%s', '%s', %d)";
+      db_query($sql,
+        $feed['twitter_uid'],
+        $feed['fid'],
+        $feed['regex_match'],
+        $feed['regex_replace'],
+        $feed['checked']);
+    }
+    else {
+      drupal_set_message('Twitter account and Feed must have values', 'error');
     }
   }
   else {
-    // update existing record
+      $sql =
+        "UPDATE {tweetrss_feed} SET
+          twitter_uid = %d,
+          fid = %d,
+          regex_match = '%s',
+          regex_replace = '%s',
+          checked =%d
+        WHERE tfid = %d";
+      db_query($sql,
+        $feed['twitter_uid'],
+        $feed['fid'],
+        $feed['regex_match'],
+        $feed['regex_replace'],
+        $feed['checked'],
+        $feed['tfid']);
   }
 }
 
+/**
+ * Retrieve a feed row by primary key.
+ */
+function tweetrss_feed_read($tfid) {
+    $sql =
+      'SELECT
+          twitter_uid,
+          fid,
+          regex_match,
+          regex_replace,
+          checked
+      FROM {tweetrss_feed}
+      WHERE tfid = %d';
+  $result = db_query($sql, $tfid);
+  $feed = db_fetch_array($result);
+  return $feed;
+}
 function tweetrss_feed_delete($feed) {
   // delete the record
   $sql = "DELETE FROM {tweetrss_feed}" .
@@ -176,15 +230,20 @@ function tweetrss_feed_delete($feed) {
  * Build feed add / edit form
  */
 function tweetrss_add_form($form_state, $tfid=0) {
+
+  $form['tfid'] = array(
+    '#type' => 'value',
+    '#value' => $tfid,
+  );
   $form['twitter_uid'] = array(
     '#type' => 'select',
     '#title' => t('Twitter account'),
-    '#options' => _get_account_list(),
+    '#options' => _tweetrss_get_account_list(),
   );
   $form['fid'] = array(
     '#type' => 'select',
     '#title' => t('RSS feed'),
-    '#options' => _get_feed_list(),
+    '#options' => _tweetrss_get_feed_list(),
   );
   $form['regex_match'] = array(
     '#type' => 'textfield',
@@ -196,5 +255,56 @@ function tweetrss_add_form($form_state, $tfid=0) {
     '#title' => t('Regex replace'),
     '#size' => 70,
   );
+  $form['checked'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Last imported'),
+//    '#default_value' => $feed['checked'],
+    '#size' => 10,
+    '#maxlength' => 10,
+  );
+  $form['save'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save feed'),
+  );
+  $form['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete'),
+  );
+  $form['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+  );
+
+  //retrieve existing record if exists
+  if ($tfid > 0) {
+    $feed = tweetrss_feed_read($tfid);
+    $form['twitter_uid']['#default_value'] = $feed['twitter_uid'];
+    $form['fid']['#default_value'] = $feed['fid'];
+    $form['regex_match']['#default_value'] = $feed['regex_match'];
+    $form['regex_replace']['#default_value'] = $feed['regex_replace'];
+    $form['checked']['#default_value'] = $feed['checked'];
+  }
+
   return $form;
 }
+
+/**
+ * Handle submitted feed add form.
+ */
+function tweetrss_add_form_submit($form, &$form_state) {
+  switch ($form_state['values']['op']) {
+    case t('Save feed'):
+      dsm('save');
+      tweetrss_feed_save($form_state['values']);
+    break;
+    case t('Delete'):
+      dsm('delete');
+    break;
+    case t('Cancel'):
+      dsm('cancel');
+    break;
+  }
+  $form_state['#redirect'] = 'admin/settings/tweetrss';
+  dsm($form_state);
+}
+

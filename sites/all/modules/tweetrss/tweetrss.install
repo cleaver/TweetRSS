@@ -1,0 +1,75 @@
+<?php
+// $Id$
+/*
+ * @file
+ */
+
+/**
+ * Implement hook_install()
+ */
+function tweetrss_install() {
+  drupal_variable_set('tweetrss', array('tweetrss' => 'Tweet RSS Regex'));
+}
+
+
+/**
+ * Implement hook_uninstall()
+ */
+function tweetrss_uninstall() {
+  drupal_variable_del('tweetrss');
+}
+
+
+/**
+ * Implement hook_schema()
+ */
+function tweetrss_schema() {
+  $schema['tweetrss_feed'] = array(
+    'description' => t('TODO: please describe this table!'),
+    'fields' => array(
+      'tfid' => array(
+        'description' => t('TODO: please describe this field!'),
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'twitter_uid' => array(
+        'description' => t('TODO: please describe this field!'),
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'default' => 0,
+        'precision' => '20',
+        'scale' => '0',
+      ),
+      'fid' => array(
+        'description' => t('TODO: please describe this field!'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'feedurl' => array(
+        'description' => t('TODO: please describe this field!'),
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'regex_match' => array(
+        'description' => t('TODO: please describe this field!'),
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'regex_replace' => array(
+        'description' => t('TODO: please describe this field!'),
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'checked' => array(
+        'description' => t('TODO: please describe this field!'),
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('tfid'),
+  );
+
+}

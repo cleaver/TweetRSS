@@ -1,0 +1,6 @@
+; $Id$
+
+name = Tweet RSS Canweather Filter
+description = Filter TweetRSS feed for Canweather.
+dependencies[] = tweetrss
+core = 6.x
