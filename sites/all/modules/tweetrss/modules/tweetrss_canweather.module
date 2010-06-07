@@ -19,7 +19,7 @@ function tweetrss_canweather_tweetrss_register() {
 /**
  * Implement hook_perm()
  */
-function tweetrss_perm() {
+function tweetrss_canweather_perm() {
   return array('administer tweetrss');
 }
 

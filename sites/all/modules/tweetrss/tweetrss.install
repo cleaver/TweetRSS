@@ -5,11 +5,26 @@
  */
 
 /**
+ * Implement hook_enable
+ */
+function tweetrss_enable() {
+  variable_set('tweetrss', array('tweetrss' => 'Tweet RSS Regex'));
+}
+
+
+/**
  * Implement hook_install()
  */
 function tweetrss_install() {
-  variable_set('tweetrss', array('tweetrss' => 'Tweet RSS Regex'));
   drupal_install_schema('tweetrss');
+}
+
+
+/**
+ * Implement hook_disable
+ */
+function tweetrss_disable() {
+  variable_del('tweetrss');
 }
 
 
@@ -17,7 +32,6 @@ function tweetrss_install() {
  * Implement hook_uninstall()
  */
 function tweetrss_uninstall() {
-  variable_del('tweetrss');
   drupal_uninstall_schema('tweetrss');
 }
 

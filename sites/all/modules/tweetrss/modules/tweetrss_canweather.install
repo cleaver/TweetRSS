@@ -5,12 +5,12 @@
  */
 
 /**
- * Implement hook_install()
+ * Implement hook_enable()
  *
  *  - register the filter type (populates dropdown in admin screen).
  *  - beware! this doesn't delete feeds that might be set up to use this filter.
  */
-function tweetrss_install() {
+function tweetrss_canweather_enable() {
   // create an entry for Canweather filter
   $feed_types = variable_get('tweetrss');
   $feed_types = array_merge($feed_types, array('tweetrss_canweather' => 'Canweather Filter'));
@@ -19,68 +19,12 @@ function tweetrss_install() {
 
 
 /**
- * Implement hook_uninstall()
+ * Implement hook_disable()
  *
  * - remove the filter type from the variable
  */
-function tweetrss_uninstall() {
+function tweetrss_canweather_disable() {
   $feed_types = variable_get('tweetrss');
   unset($feed_types['tweetrss_canweather']);
   variable_set('tweetrss', $feed_types);
-}
-
-
-/**
- * Implement hook_schema()
- */
-function tweetrss_schema() {
-  $schema['tweetrss_feed'] = array(
-    'description' => t('TODO: please describe this table!'),
-    'fields' => array(
-      'tfid' => array(
-        'description' => t('TODO: please describe this field!'),
-        'type' => 'serial',
-        'not null' => TRUE,
-      ),
-      'twitter_uid' => array(
-        'description' => t('TODO: please describe this field!'),
-        'type' => 'numeric',
-        'not null' => TRUE,
-        'default' => 0,
-        'precision' => '20',
-        'scale' => '0',
-      ),
-      'fid' => array(
-        'description' => t('TODO: please describe this field!'),
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'feedtype' => array(
-        'description' => t('TODO: please describe this field!'),
-        'type' => 'varchar',
-        'length' => '255',
-        'not null' => FALSE,
-      ),
-      'regex_match' => array(
-        'description' => t('TODO: please describe this field!'),
-        'type' => 'text',
-        'not null' => TRUE,
-      ),
-      'regex_replace' => array(
-        'description' => t('TODO: please describe this field!'),
-        'type' => 'text',
-        'not null' => FALSE,
-      ),
-      'checked' => array(
-        'description' => t('TODO: please describe this field!'),
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-    ),
-    'primary key' => array('tfid'),
-  );
-  return $schema;
-
 }
