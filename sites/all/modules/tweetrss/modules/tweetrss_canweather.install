@@ -6,19 +6,27 @@
 
 /**
  * Implement hook_install()
+ *
+ *  - register the filter type (populates dropdown in admin screen).
+ *  - beware! this doesn't delete feeds that might be set up to use this filter.
  */
 function tweetrss_install() {
-  variable_set('tweetrss', array('tweetrss' => 'Tweet RSS Regex'));
-  drupal_install_schema('tweetrss');
+  // create an entry for Canweather filter
+  $feed_types = variable_get('tweetrss');
+  $feed_types = array_merge($feed_types, array('tweetrss_canweather' => 'Canweather Filter'));
+  variable_set('tweetrss', $feed_types);
 }
 
 
 /**
  * Implement hook_uninstall()
+ *
+ * - remove the filter type from the variable
  */
 function tweetrss_uninstall() {
-  variable_del('tweetrss');
-  drupal_uninstall_schema('tweetrss');
+  $feed_types = variable_get('tweetrss');
+  unset($feed_types['tweetrss_canweather']);
+  variable_set('tweetrss', $feed_types);
 }
 
 
@@ -27,15 +35,15 @@ function tweetrss_uninstall() {
  */
 function tweetrss_schema() {
   $schema['tweetrss_feed'] = array(
-    'description' => t('Record a list of tweetrss feeds'),
+    'description' => t('TODO: please describe this table!'),
     'fields' => array(
       'tfid' => array(
-        'description' => t('tweetrss feed ID'),
+        'description' => t('TODO: please describe this field!'),
         'type' => 'serial',
         'not null' => TRUE,
       ),
       'twitter_uid' => array(
-        'description' => t('Twitter user ID'),
+        'description' => t('TODO: please describe this field!'),
         'type' => 'numeric',
         'not null' => TRUE,
         'default' => 0,
@@ -43,29 +51,29 @@ function tweetrss_schema() {
         'scale' => '0',
       ),
       'fid' => array(
-        'description' => t('Feed Id'),
+        'description' => t('TODO: please describe this field!'),
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
       ),
       'feedtype' => array(
-        'description' => t('Feedtype - refers to a filter module'),
+        'description' => t('TODO: please describe this field!'),
         'type' => 'varchar',
         'length' => '255',
         'not null' => FALSE,
       ),
       'regex_match' => array(
-        'description' => t('Regex pattern to match'),
+        'description' => t('TODO: please describe this field!'),
         'type' => 'text',
         'not null' => TRUE,
       ),
       'regex_replace' => array(
-        'description' => t('Regex replacement pattern'),
+        'description' => t('TODO: please describe this field!'),
         'type' => 'text',
         'not null' => FALSE,
       ),
       'checked' => array(
-        'description' => t('Last feed item id processed'),
+        'description' => t('TODO: please describe this field!'),
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
