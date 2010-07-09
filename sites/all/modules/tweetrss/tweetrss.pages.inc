@@ -273,6 +273,7 @@ function tweetrss_add_form($form_state, $tfid=0) {
     $feed = tweetrss_feed_read($tfid);
     $form['twitter_uid']['#default_value'] = $feed['twitter_uid'];
     $form['fid']['#default_value'] = $feed['fid'];
+    $form['feedtype']['#default_value'] = $feed['feedtype'];
     $form['regex_match']['#default_value'] = $feed['regex_match'];
     $form['regex_replace']['#default_value'] = $feed['regex_replace'];
     $form['checked']['#default_value'] = $feed['checked'];
@@ -298,4 +299,3 @@ function tweetrss_add_form_submit($form, &$form_state) {
   }
   $form_state['redirect'] = 'admin/settings/tweetrss';
 }
-

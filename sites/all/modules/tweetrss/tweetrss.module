@@ -11,12 +11,18 @@
 function tweetrss_cron() {
   module_load_include('inc', 'twitter');
 
-  $sql = "SELECT a.twitter_uid,
+  $sql = "SELECT
+    a.twitter_uid,
     a.screen_name,
     f.checked,
     i.fid,
+    f.feedtype,
+    f.regex_match,
+    f.regex_replace,
     i.iid,
     i.title,
+    i.description,
+    i.link,
     i.timestamp
   FROM {twitter_account} a,
     {tweetrss_feed} f,
@@ -29,48 +35,30 @@ function tweetrss_cron() {
   $results = db_query($sql);
   while ($row = db_fetch_array($results)) {
     $tuid = $row['twitter_uid'];
-    $title = $row['title'];
-    tweetrss_filter_feed_item($tuid, $title);
-    tweetrss_tweet($tuid, $title);
+    $tweet = tweetrss_filter_feed_item($row);
+watchdog('tweetrss', 'tuid: @t tweet: @r', array('@t'=>$tuid, '@r'=>$tweet));
+    tweetrss_tweet($tuid, $tweet);
+//watchdog('tweetrss', 'tuid: @r', array('@r'=>$tuid));
     tweetrss_check_row($row);
   }
 
 }
 
 /**
- * Filter a row of feed data.  A row contains the following significant fields:
- *   $tuid - the twitter user id to use for posting the item
- *   $title - the rss feed title that will be used to compose the tweet
+ * Filter a row of feed data.  This function calls hook_tweetrss_filter from
+ * this or other modules.
  *
- * If a row is not to be tweeted, the $title will be set null;
+ * @param $row
+ *   a row of data containing feed and twitter account information
+ *
+ * @return
+ *   string to be tweeted -- if a row is not to be tweeted, return null
+ *
  */
- function tweetrss_filter_feed_item($tuid, &$data) {
-
-  $include = FALSE;
-  $frenchdays = array(
-    'Monday'    => 'Lundi',
-    'Tuesday'   => 'Mardi',
-    'Wednesday' => 'Mercredi',
-    'Thursday'  => 'Jeudi',
-    'Friday'    => 'Vendredi',
-    'Saturday'  => 'Samedi',
-    'Sunday'    => 'Dimanche'
-  );
-  $today = date('l');
-  $ftoday = $frenchdays[$today];
-  $nowplus = mktime(0, 0, 0, date("m"), date("d")+1, date("y"));
-  $tomorrow = date("l", $nowplus);
-   $ftomorrow = $frenchdays[$tomorrow];
-   $daymatch = "/$today|$tomorrow|$ftoday|$ftomorrow/i";
-  if (preg_match("/Current Conditions|Conditions actuelles/", $data)) {
-    $include = TRUE;
-  }
-  elseif (preg_match($daymatch, $data)) {
-    $include = TRUE;
-  }
-  if (!$include) {
-    $data = NULL;
-  }
+function tweetrss_filter_feed_item($row) {
+  $module = $row['feedtype'];
+  $hook = 'tweetrss_filter';
+  return module_invoke($module, $hook, $row);
 }
 
 /**
@@ -146,6 +134,11 @@ watchdog('tweetrss', 'menu');
   return $items;
 }
 
+
+/**
+ * Implement hook_theme()
+ *
+ */
 function tweetrss_theme() {
   return array(
     'tweetrss_admin_form' => array(
@@ -155,5 +148,44 @@ function tweetrss_theme() {
       'arguments' => array('form' => NULL),
     )
   );
+}
+
+
+/**
+ * Implement hook_tweetrss_filter()
+ *
+ * Puts the feed data into pseudo-RSS format. EG:
+ * @code
+ *     <item>
+ *        <title>News for September the Second</title>
+ *        <link>http://example.com/2002/09/01</link>
+ *        <description>other things happened today</description>
+ *     </item>
+ * @endcode
+ *
+ * @param $row
+ *   a row of data containing feed and twitter account information
+ *
+ * @return
+ *   string to be tweeted -- if a row is not to be tweeted, return null
+ *
+ */
+function tweetrss_tweetrss_filter($row) {
+  // put the feed and item data into a pseudo-RSS format for matching
+  $rss =
+    "<item>" .
+    "<title>{$row['title']}</title>" .
+    "<link>{$row['link']}</link>" .
+    "<description>{$row['description']}</description>" .
+    "</item>";
+  watchdog('tweetrss', 'RSS: @rss', array('@rss'=>$rss));
+  watchdog('tweetrss', 'regex_match: @r', array('@r'=>$row['regex_match']));
+  watchdog('tweetrss', 'regex_replace: @r', array('@r'=>$row['regex_replace']));
+  // preg_replace is not true regex substitution
+  // so we have to make sure it matches before proceeding
+  if (preg_match($row['regex_match'], $rss)) {
+    $tweet = preg_replace($row['regex_match'], $row['regex_replace'], $rss);
+  }
+  return($tweet);
 }
 

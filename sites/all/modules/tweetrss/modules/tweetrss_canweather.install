@@ -12,7 +12,7 @@
  */
 function tweetrss_canweather_enable() {
   // create an entry for Canweather filter
-  $feed_types = variable_get('tweetrss');
+  $feed_types = variable_get('tweetrss', array());
   $feed_types = array_merge($feed_types, array('tweetrss_canweather' => 'Canweather Filter'));
   variable_set('tweetrss', $feed_types);
 }
@@ -24,7 +24,7 @@ function tweetrss_canweather_enable() {
  * - remove the filter type from the variable
  */
 function tweetrss_canweather_disable() {
-  $feed_types = variable_get('tweetrss');
+  $feed_types = variable_get('tweetrss', array());
   unset($feed_types['tweetrss_canweather']);
   variable_set('tweetrss', $feed_types);
 }

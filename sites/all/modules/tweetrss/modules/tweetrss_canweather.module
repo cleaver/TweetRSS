@@ -4,8 +4,35 @@
  * Implement hook_tweetrss_filter()
  *
  */
-function tweetrss_canweather_tweetrss_filter($tuid, &$data) {
-  //
+function tweetrss_canweather_tweetrss_filter($row) {
+
+  $data = $row['title'];
+  $include = FALSE;
+  $frenchdays = array(
+    'Monday'    => 'Lundi',
+    'Tuesday'   => 'Mardi',
+    'Wednesday' => 'Mercredi',
+    'Thursday'  => 'Jeudi',
+    'Friday'    => 'Vendredi',
+    'Saturday'  => 'Samedi',
+    'Sunday'    => 'Dimanche'
+  );
+  $today = date('l');
+  $ftoday = $frenchdays[$today];
+  $nowplus = mktime(0, 0, 0, date("m"), date("d")+1, date("y"));
+  $tomorrow = date("l", $nowplus);
+   $ftomorrow = $frenchdays[$tomorrow];
+   $daymatch = "/$today|$tomorrow|$ftoday|$ftomorrow/i";
+  if (preg_match("/Current Conditions|Conditions actuelles/", $data)) {
+    $include = TRUE;
+  }
+  elseif (preg_match($daymatch, $data)) {
+    $include = TRUE;
+  }
+  if (!$include) {
+    $data = NULL;
+  }
+  return $data;
 }
 
 /**
