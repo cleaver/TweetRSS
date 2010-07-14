@@ -36,9 +36,8 @@ function tweetrss_cron() {
   while ($row = db_fetch_array($results)) {
     $tuid = $row['twitter_uid'];
     $tweet = tweetrss_filter_feed_item($row);
-watchdog('tweetrss', 'tuid: @t tweet: @r', array('@t'=>$tuid, '@r'=>$tweet));
+    watchdog('tweetrss', 'tuid: @t tweet: @r', array('@t' => $tuid, '@r' => $tweet), WATCHDOG_DEBUG);
     tweetrss_tweet($tuid, $tweet);
-//watchdog('tweetrss', 'tuid: @r', array('@r'=>$tuid));
     tweetrss_check_row($row);
   }
 
@@ -58,7 +57,8 @@ watchdog('tweetrss', 'tuid: @t tweet: @r', array('@t'=>$tuid, '@r'=>$tweet));
 function tweetrss_filter_feed_item($row) {
   $module = $row['feedtype'];
   $hook = 'tweetrss_filter';
-  return module_invoke($module, $hook, $row);
+  $result =  module_invoke($module, $hook, $row);
+  return $result;
 }
 
 /**
@@ -98,9 +98,6 @@ function tweetrss_perm() {
  * Implement hook_menu()
  */
 function tweetrss_menu() {
-
-watchdog('tweetrss', 'menu');
-
   $items['admin/settings/tweetrss'] = array(
     'title' => 'Tweet RSS',
     'description' => 'Tweet RSS setup screen',
@@ -154,7 +151,8 @@ function tweetrss_theme() {
 /**
  * Implement hook_tweetrss_filter()
  *
- * Puts the feed data into pseudo-RSS format. EG:
+ * Puts the feed data into pseudo-RSS format and performs regular
+ * expression substitution using preg_replace(). Example feed:
  * @code
  *     <item>
  *        <title>News for September the Second</title>
@@ -178,14 +176,13 @@ function tweetrss_tweetrss_filter($row) {
     "<link>{$row['link']}</link>" .
     "<description>{$row['description']}</description>" .
     "</item>";
-  watchdog('tweetrss', 'RSS: @rss', array('@rss'=>$rss));
-  watchdog('tweetrss', 'regex_match: @r', array('@r'=>$row['regex_match']));
-  watchdog('tweetrss', 'regex_replace: @r', array('@r'=>$row['regex_replace']));
-  // preg_replace is not true regex substitution
-  // so we have to make sure it matches before proceeding
+  // strip linebreaks
+  $rss = str_replace(array("\r\n", "\n", "\r"), '', $rss);
+  watchdog('tweetrss', 'RSS: @rss', array('@rss' => $rss), WATCHDOG_DEBUG);
+  // make sure it matches before doing the substitution
   if (preg_match($row['regex_match'], $rss)) {
     $tweet = preg_replace($row['regex_match'], $row['regex_replace'], $rss);
   }
-  return($tweet);
+  return substr($tweet, 0, 140);
 }
 

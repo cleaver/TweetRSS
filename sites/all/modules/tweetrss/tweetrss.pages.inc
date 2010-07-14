@@ -1,9 +1,11 @@
 <?php
-/*
- * Created on Apr 6, 2010
+// $Id$
+
+/**
+ * @file
+ * Administration screens for tweetrss module.
  *
- * To change the template for this generated file go to
- * Window - Preferences - PHPeclipse - PHP - Code Templates
+ * Created on Apr 6, 2010
  */
 
 /**
@@ -48,7 +50,7 @@ function _tweetrss_feed_row($feed) {
   );
   $form['edit_link'] = array(
     '#type' => 'markup',
-    '#value' => l('edit', "admin/settings/tweetrss/edit/{$feed['tfid']}"),
+    '#value' => l(t('edit'), "admin/settings/tweetrss/edit/{$feed['tfid']}"),
   );
   return $form;
 }
@@ -118,7 +120,7 @@ function theme_tweetrss_add_form($form) {
  */
 function tweetrss_admin_form_submit($form, &$form_state) {
   $feeds = $form_state['values']['feeds'];
-  foreach($feeds as $feed) {
+  foreach ($feeds as $feed) {
     if (empty($feed['delete'])) {
       tweetrss_feed_save($feed);
     }
@@ -156,7 +158,7 @@ function tweetrss_feed_save($feed) {
         $feed['checked']);
     }
     else {
-      drupal_set_message('Twitter account and Feed must have values', 'error');
+      drupal_set_message(t('Twitter account and Feed must have values'), 'error');
     }
   }
   else {
@@ -274,8 +276,8 @@ function tweetrss_add_form($form_state, $tfid=0) {
     $form['twitter_uid']['#default_value'] = $feed['twitter_uid'];
     $form['fid']['#default_value'] = $feed['fid'];
     $form['feedtype']['#default_value'] = $feed['feedtype'];
-    $form['regex_match']['#default_value'] = $feed['regex_match'];
-    $form['regex_replace']['#default_value'] = $feed['regex_replace'];
+    $form['regex_match']['#default_value'] = tweetrss_filter_xss($feed['regex_match']);
+    $form['regex_replace']['#default_value'] = tweetrss_filter_xss($feed['regex_replace']);
     $form['checked']['#default_value'] = $feed['checked'];
   }
 
@@ -299,3 +301,33 @@ function tweetrss_add_form_submit($form, &$form_state) {
   }
   $form_state['redirect'] = 'admin/settings/tweetrss';
 }
+
+/**
+ * Filter out possible XSS vulnerabilities.  Since it is applied
+ * to the regex strings, it has to be more permissive than check_plain(),
+ * filter_xss(), etc.  This function is just a hacked version of D6
+ * version of filter_xss().
+ *
+ */
+function tweetrss_filter_xss($string) {
+  // Only operate on valid UTF-8 strings. This is necessary to prevent cross
+  // site scripting issues on Internet Explorer 6.
+  if (!drupal_validate_utf8($string)) {
+    return '';
+  }
+  // Remove Netscape 4 JS entities
+  $string = preg_replace('%&\s*\{[^}]*(\}\s*;?|$)%', '', $string);
+
+  // Defuse all HTML entities
+  $string = str_replace('&', '&amp;', $string);
+  // Change back only well-formed entities in our whitelist
+  // Decimal numeric entities
+  $string = preg_replace('/&amp;#([0-9]+;)/', '&#\1', $string);
+  // Hexadecimal numeric entities
+  $string = preg_replace('/&amp;#[Xx]0*((?:[0-9A-Fa-f]{2})+;)/', '&#x\1', $string);
+  // Named entities
+  $string = preg_replace('/&amp;([A-Za-z][A-Za-z0-9]*;)/', '&\1', $string);
+
+  return $string;
+}
+

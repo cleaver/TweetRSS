@@ -1,6 +1,6 @@
 ; $Id$
 
 name = Tweet RSS Canweather Filter
-description = Filter TweetRSS feed for Canweather.
+description = Filter TweetRSS feed for Canweather.  Used at canweather.com and provided as a sample for using TweetRSS hooks.
 dependencies[] = tweetrss
 core = 6.x
