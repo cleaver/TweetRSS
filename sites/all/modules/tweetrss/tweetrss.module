@@ -5,7 +5,7 @@
  */
 
 /**
- * Implement hook_cron()
+ * Implements hook_cron()
  *
  */
 function tweetrss_cron() {
@@ -36,7 +36,6 @@ function tweetrss_cron() {
   while ($row = db_fetch_array($results)) {
     $tuid = $row['twitter_uid'];
     $tweet = tweetrss_filter_feed_item($row);
-    watchdog('tweetrss', 'tuid: @t tweet: @r', array('@t' => $tuid, '@r' => $tweet), WATCHDOG_DEBUG);
     tweetrss_tweet($tuid, $tweet);
     tweetrss_check_row($row);
   }
@@ -88,21 +87,20 @@ function tweetrss_check_row($row) {
 }
 
 /**
- * Implement hook_perm()
+ * Implements hook_perm()
  */
 function tweetrss_perm() {
   return array('administer tweetrss');
 }
 
 /**
- * Implement hook_menu()
+ * Implements hook_menu()
  */
 function tweetrss_menu() {
   $items['admin/settings/tweetrss'] = array(
     'title' => 'Tweet RSS',
     'description' => 'Tweet RSS setup screen',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('tweetrss_admin_form'),
+    'page callback' => 'tweetrss_admin_form',
     'access arguments' => array('administer tweetrss'),
     'file' => 'tweetrss.pages.inc'
     );
@@ -133,14 +131,11 @@ function tweetrss_menu() {
 
 
 /**
- * Implement hook_theme()
+ * Implements hook_theme()
  *
  */
 function tweetrss_theme() {
   return array(
-    'tweetrss_admin_form' => array(
-      'arguments' => array('form' => NULL),
-    ),
     'tweerss_add_form' => array(
       'arguments' => array('form' => NULL),
     )
@@ -149,7 +144,7 @@ function tweetrss_theme() {
 
 
 /**
- * Implement hook_tweetrss_filter()
+ * Implements hook_tweetrss_filter()
  *
  * Puts the feed data into pseudo-RSS format and performs regular
  * expression substitution using preg_replace(). Example feed:
@@ -178,7 +173,6 @@ function tweetrss_tweetrss_filter($row) {
     "</item>";
   // strip linebreaks
   $rss = str_replace(array("\r\n", "\n", "\r"), '', $rss);
-  watchdog('tweetrss', 'RSS: @rss', array('@rss' => $rss), WATCHDOG_DEBUG);
   // make sure it matches before doing the substitution
   if (preg_match($row['regex_match'], $rss)) {
     $tweet = preg_replace($row['regex_match'], $row['regex_replace'], $rss);

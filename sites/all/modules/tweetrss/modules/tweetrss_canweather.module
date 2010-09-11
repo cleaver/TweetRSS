@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implement hook_tweetrss_filter()
+ * Implements hook_tweetrss_filter()
  *
  */
 function tweetrss_canweather_tweetrss_filter($row) {
@@ -36,7 +36,7 @@ function tweetrss_canweather_tweetrss_filter($row) {
 }
 
 /**
- * Implement hook_perm()
+ * Implements hook_perm()
  */
 function tweetrss_canweather_perm() {
   return array('administer tweetrss');

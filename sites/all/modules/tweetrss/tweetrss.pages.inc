@@ -11,10 +11,8 @@
 /**
  * Build feed list form
  */
-function tweetrss_admin_form($form_state) {
+function tweetrss_admin_form() {
 
-  $form['#tree'] = TRUE;
-  $form['feeds'] = array();
   $sql = "SELECT r.tfid, r.twitter_uid, a.screen_name, r.fid, f.title, r.feedtype
       FROM {tweetrss_feed} r,
         {twitter_account} a,
@@ -24,36 +22,23 @@ function tweetrss_admin_form($form_state) {
       ORDER BY a.screen_name";
   $results = db_query($sql);
   while ($row = db_fetch_array($results)) {
-    $form['feeds'][] = _tweetrss_feed_row($row);
+    $rows[] = array(
+      $row['screen_name'],
+      $row['title'],
+      $row['feedtype'],
+      l(t('edit'), "admin/settings/tweetrss/edit/{$row['tfid']}"),
+    );
   }
-  return $form;
+  $header = array(
+    t('Twitter account'),
+    t('RSS feed'),
+    t('Feed type'),
+    t('Operations'));
+  $output = theme('table', $header, $rows);
+
+  return $output;
 }
 
-
-/**
- * Add a row to the form.
- *
- */
-function _tweetrss_feed_row($feed) {
-  $form['#feed'] = $feed;
-  $form['screen_name'] = array(
-    '#type' => 'markup',
-    '#value' => $feed['screen_name'],
-  );
-  $form['title'] = array(
-    '#type' => 'markup',
-    '#value' => $feed['title'],
-  );
-  $form['feedtype'] = array(
-    '#type' => 'markup',
-    '#value' => $feed['feedtype'],
-  );
-  $form['edit_link'] = array(
-    '#type' => 'markup',
-    '#value' => l(t('edit'), "admin/settings/tweetrss/edit/{$feed['tfid']}"),
-  );
-  return $form;
-}
 
 function _tweetrss_get_feed_list() {
   $list = array(-1 => '---');
@@ -77,57 +62,12 @@ function _tweetrss_get_account_list() {
 
 
 /**
- * Default theme function for feed list screen
- *
- */
-function theme_tweetrss_admin_form($form) {
-
-  $header = array(
-    t('Twitter account'),
-    t('RSS feed'),
-    t('Feed type'),
-    t('Operations'));
-  $rows = array();
-  $feedtypes = variable_get('tweetrss', NULL);
-  foreach (element_children($form['feeds']) as $key) {
-    $element = &$form['feeds'][$key];
-    $row = array(
-      drupal_render($element['screen_name']),
-      drupal_render($element['title']),
-      $feedtypes[$element['feedtype']['#value']],
-      drupal_render($element['edit_link']),
-    );
-    $rows[] = $row;
-  }
-  $output = theme('table', $header, $rows);
-  $output .= drupal_render($form['buttons']);
-  return $output;
-}
-
-/**
  * Default theme function for add/edit form
  *
  */
 function theme_tweetrss_add_form($form) {
   $output = drupal_render($form);
   return $output;
-}
-
-
-/**
- * Handle submitted tweetrss admin form
- *
- */
-function tweetrss_admin_form_submit($form, &$form_state) {
-  $feeds = $form_state['values']['feeds'];
-  foreach ($feeds as $feed) {
-    if (empty($feed['delete'])) {
-      tweetrss_feed_save($feed);
-    }
-    else {
-      tweetrss_feed_delete($feed);
-    }
-  }
 }
 
 

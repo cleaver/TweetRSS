@@ -6,7 +6,7 @@
  */
 
 /**
- * Implement hook_enable()
+ * Implements hook_enable()
  *
  *  - register the filter type (populates dropdown in admin screen).
  *  - beware! this doesn't delete feeds that might be set up to use this filter.
@@ -20,7 +20,7 @@ function tweetrss_canweather_enable() {
 
 
 /**
- * Implement hook_disable()
+ * Implements hook_disable()
  *
  * - remove the filter type from the variable
  */
