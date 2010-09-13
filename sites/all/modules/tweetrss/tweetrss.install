@@ -6,26 +6,10 @@
  */
 
 /**
- * Implements hook_enable
- */
-function tweetrss_enable() {
-  variable_set('tweetrss', array('tweetrss' => 'Tweet RSS Regex'));
-}
-
-
-/**
  * Implements hook_install()
  */
 function tweetrss_install() {
   drupal_install_schema('tweetrss');
-}
-
-
-/**
- * Implements hook_disable
- */
-function tweetrss_disable() {
-  variable_del('tweetrss');
 }
 
 
@@ -42,15 +26,15 @@ function tweetrss_uninstall() {
  */
 function tweetrss_schema() {
   $schema['tweetrss_feed'] = array(
-    'description' => t('Record a list of tweetrss feeds'),
+    'description' => 'Record a list of tweetrss feeds.',
     'fields' => array(
       'tfid' => array(
-        'description' => t('tweetrss feed ID'),
+        'description' => 'The tweetrss feed identifier.',
         'type' => 'serial',
         'not null' => TRUE,
       ),
       'twitter_uid' => array(
-        'description' => t('Twitter user ID'),
+        'description' => 'Twitter user ID.',
         'type' => 'numeric',
         'not null' => TRUE,
         'default' => 0,
@@ -58,29 +42,29 @@ function tweetrss_schema() {
         'scale' => '0',
       ),
       'fid' => array(
-        'description' => t('Feed Id'),
+        'description' => 'Feed ID from Aggregator module.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
       ),
       'feedtype' => array(
-        'description' => t('Feedtype - refers to a filter module'),
+        'description' => 'Feedtype - refers to the selected filter module.',
         'type' => 'varchar',
         'length' => '255',
         'not null' => FALSE,
       ),
       'regex_match' => array(
-        'description' => t('Regex pattern to match'),
+        'description' => 'Regex pattern to match.',
         'type' => 'text',
         'not null' => TRUE,
       ),
       'regex_replace' => array(
-        'description' => t('Regex replacement pattern'),
+        'description' => 'Regex replacement pattern.',
         'type' => 'text',
         'not null' => FALSE,
       ),
       'checked' => array(
-        'description' => t('Last feed item id processed'),
+        'description' => 'Last feed item ID processed.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,

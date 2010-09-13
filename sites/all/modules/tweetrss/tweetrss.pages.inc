@@ -80,22 +80,14 @@ function tweetrss_feed_save($feed) {
   if ($feed['tfid'] == 0) {
     // insert new record
     if ($feed['twitter_uid'] > 0 && $feed['fid'] > 0) {
-      $sql =
-        "INSERT INTO {tweetrss_feed} (
-          twitter_uid,
-          fid,
-          feedtype,
-          regex_match,
-          regex_replace,
-          checked )
-        VALUES (%d, %d, '%s', '%s', '%s', %d)";
-      db_query($sql,
-        $feed['twitter_uid'],
-        $feed['fid'],
-        $feed['feedtype'],
-        $feed['regex_match'],
-        $feed['regex_replace'],
-        $feed['checked']);
+      $record = (object) NULL;
+      $record->twitter_uid    = $feed['twitter_uid'];
+      $record->fid            = $feed['fid'];
+      $record->feedtype       = $feed['feedtype'];
+      $record->regex_match    = $feed['regex_match'];
+      $record->regex_replace  = $feed['regex_replace'];
+      $record->checked        = $feed['checked'];
+      drupal_write_record('tweetrss_feed', $record);
     }
     else {
       drupal_set_message(t('Twitter account and Feed must have values'), 'error');
@@ -179,7 +171,7 @@ function tweetrss_add_form($form_state, $tfid=0) {
   $form['feedtype'] = array(
     '#type' => 'select',
     '#title' => t('RSS feed'),
-    '#options' => variable_get('tweetrss', array('tweetrss' => 'Tweet RSS Regex')),
+    '#options' => tweetrss_module_list(),
   );
   $form['regex_match'] = array(
     '#type' => 'textfield',

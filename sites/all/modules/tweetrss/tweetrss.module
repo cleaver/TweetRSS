@@ -142,6 +142,18 @@ function tweetrss_theme() {
   );
 }
 
+/**
+ * Get a list of tweetrss filter modules by calling hook_tweetrss_register()
+ * 
+ */
+function tweetrss_module_list() {
+  $hook = 'tweetrss_register';
+  $list = array();
+  foreach (module_implements($hook) as $module) {
+    $list = array_merge($list, module_invoke($module, $hook));
+  }
+  return $list;
+}
 
 /**
  * Implements hook_tweetrss_filter()
@@ -178,5 +190,20 @@ function tweetrss_tweetrss_filter($row) {
     $tweet = preg_replace($row['regex_match'], $row['regex_replace'], $rss);
   }
   return substr($tweet, 0, 140);
+}
+
+
+/**
+ * Implements hook_tweetrss_register()
+ * 
+ * Used to generate a list of filter modules that work with tweetrss.
+ * The list is used to for the admin screen dropdown to allow user to
+ * select the filter module they wish to apply to a feed.
+ *  
+ * @return
+ *   key/value pair with module name/description
+ */
+function tweetrss_tweetrss_register() {
+  return array('tweetrss' => 'Tweet RSS Regex');
 }
 

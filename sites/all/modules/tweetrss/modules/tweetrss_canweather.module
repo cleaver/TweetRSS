@@ -36,9 +36,9 @@ function tweetrss_canweather_tweetrss_filter($row) {
 }
 
 /**
- * Implements hook_perm()
+ * Implements hook_tweetrss_register()
+ * 
  */
-function tweetrss_canweather_perm() {
-  return array('administer tweetrss');
+function tweetrss_canweather_tweetrss_register() {
+  return array('tweetrss_canweather' => 'Canweather Filter');
 }
-
