@@ -1,0 +1,6 @@
+; $Id: tweetrss_canweather.info,v 1.1 2010/09/14 14:29:28 cleaver Exp $
+
+name = Tweet RSS Canweather Filter
+description = Filter TweetRSS feed for Canweather.  Used at canweather.com and provided as a sample for using TweetRSS hooks.
+dependencies[] = tweetrss
+core = 6.x

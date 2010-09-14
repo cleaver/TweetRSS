@@ -1,0 +1,209 @@
+<?php
+// $Id: tweetrss.module,v 1.1 2010/09/13 21:39:35 cleaver Exp $
+/*
+ * Created on Mar 10, 2010
+ */
+
+/**
+ * Implements hook_cron()
+ *
+ */
+function tweetrss_cron() {
+  module_load_include('inc', 'twitter');
+
+  $sql = "SELECT
+    a.twitter_uid,
+    a.screen_name,
+    f.checked,
+    i.fid,
+    f.feedtype,
+    f.regex_match,
+    f.regex_replace,
+    i.iid,
+    i.title,
+    i.description,
+    i.link,
+    i.timestamp
+  FROM {twitter_account} a,
+    {tweetrss_feed} f,
+    {aggregator_item} i
+  WHERE a.twitter_uid = f.twitter_uid
+    AND f.fid = i.fid
+    AND i.iid > f.checked
+  ORDER BY i.fid, i.iid
+  ";
+  $results = db_query($sql);
+  while ($row = db_fetch_array($results)) {
+    $tuid = $row['twitter_uid'];
+    $tweet = tweetrss_filter_feed_item($row);
+    tweetrss_tweet($tuid, $tweet);
+    tweetrss_check_row($row);
+  }
+
+}
+
+/**
+ * Filter a row of feed data.  This function calls hook_tweetrss_filter from
+ * this or other modules.
+ *
+ * @param $row
+ *   a row of data containing feed and twitter account information
+ *
+ * @return
+ *   string to be tweeted -- if a row is not to be tweeted, return null
+ *
+ */
+function tweetrss_filter_feed_item($row) {
+  $module = $row['feedtype'];
+  $hook = 'tweetrss_filter';
+  $result =  module_invoke($module, $hook, $row);
+  return $result;
+}
+
+/**
+ * Given a twitter user id ($tuid), post a string ($tweetstring)
+ * to twitter.
+ */
+function tweetrss_tweet($tuid, $tweetstring) {
+  if (empty($tuid) || empty($tweetstring)) {
+    return;
+  }
+  $user = twitter_account_load($tuid);
+  twitter_set_status($user, $tweetstring);
+}
+
+/**
+ * Update a row to mark the last feed row we tweeted.
+ */
+function tweetrss_check_row($row) {
+  $tuid = $row['twitter_uid'];
+  $iid = $row['iid'];
+  $fid = $row['fid'];
+  $sql = "UPDATE {tweetrss_feed} " .
+      " SET checked = $iid " .
+      " WHERE twitter_uid = $tuid " .
+      " AND fid = $fid ";
+  update_sql($sql);
+}
+
+/**
+ * Implements hook_perm()
+ */
+function tweetrss_perm() {
+  return array('administer tweetrss');
+}
+
+/**
+ * Implements hook_menu()
+ */
+function tweetrss_menu() {
+  $items['admin/settings/tweetrss'] = array(
+    'title' => 'Tweet RSS',
+    'description' => 'Tweet RSS setup screen',
+    'page callback' => 'tweetrss_admin_form',
+    'access arguments' => array('administer tweetrss'),
+    'file' => 'tweetrss.pages.inc'
+    );
+  $items['admin/settings/tweetrss/list'] = array(
+    'title' => 'List',
+    'description' => 'Tweet RSS setup screen',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/settings/tweetrss/add'] = array(
+    'title' => 'Add Feed',
+    'description' => 'Add Tweet RSS feed',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tweetrss_add_form'),
+    'access arguments' => array('administer tweetrss'),
+    'file' => 'tweetrss.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/settings/tweetrss/edit/%'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tweetrss_add_form', 4),
+    'access arguments' => array('administer tweetrss'),
+    'file' => 'tweetrss.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+
+/**
+ * Implements hook_theme()
+ *
+ */
+function tweetrss_theme() {
+  return array(
+    'tweerss_add_form' => array(
+      'arguments' => array('form' => NULL),
+    )
+  );
+}
+
+/**
+ * Get a list of tweetrss filter modules by calling hook_tweetrss_register()
+ * 
+ */
+function tweetrss_module_list() {
+  $hook = 'tweetrss_register';
+  $list = array();
+  foreach (module_implements($hook) as $module) {
+    $list = array_merge($list, module_invoke($module, $hook));
+  }
+  return $list;
+}
+
+/**
+ * Implements hook_tweetrss_filter()
+ *
+ * Puts the feed data into pseudo-RSS format and performs regular
+ * expression substitution using preg_replace(). Example feed:
+ * @code
+ *     <item>
+ *        <title>News for September the Second</title>
+ *        <link>http://example.com/2002/09/01</link>
+ *        <description>other things happened today</description>
+ *     </item>
+ * @endcode
+ *
+ * @param $row
+ *   a row of data containing feed and twitter account information
+ *
+ * @return
+ *   string to be tweeted -- if a row is not to be tweeted, return null
+ *
+ */
+function tweetrss_tweetrss_filter($row) {
+  // put the feed and item data into a pseudo-RSS format for matching
+  $rss =
+    "<item>" .
+    "<title>{$row['title']}</title>" .
+    "<link>{$row['link']}</link>" .
+    "<description>{$row['description']}</description>" .
+    "</item>";
+  // strip linebreaks
+  $rss = str_replace(array("\r\n", "\n", "\r"), '', $rss);
+  // make sure it matches before doing the substitution
+  if (preg_match($row['regex_match'], $rss)) {
+    $tweet = preg_replace($row['regex_match'], $row['regex_replace'], $rss);
+  }
+  return substr($tweet, 0, 140);
+}
+
+
+/**
+ * Implements hook_tweetrss_register()
+ * 
+ * Used to generate a list of filter modules that work with tweetrss.
+ * The list is used to for the admin screen dropdown to allow user to
+ * select the filter module they wish to apply to a feed.
+ *  
+ * @return
+ *   key/value pair with module name/description
+ */
+function tweetrss_tweetrss_register() {
+  return array('tweetrss' => 'Tweet RSS Regex');
+}
+

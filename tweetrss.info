@@ -1,0 +1,7 @@
+; $Id: tweetrss.info,v 1.1 2010/09/13 21:39:35 cleaver Exp $
+
+name = Tweet RSS
+description = Process an RSS feed and post to Twitter.
+dependencies[] = twitter
+dependencies[] = aggregator
+core = 6.x

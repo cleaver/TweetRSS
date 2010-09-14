@@ -1,0 +1,77 @@
+<?php
+// $Id: tweetrss.install,v 1.1 2010/09/13 21:39:35 cleaver Exp $
+/**
+ * @file
+ * Install and uninstall functions for tweetrss module.
+ */
+
+/**
+ * Implements hook_install()
+ */
+function tweetrss_install() {
+  drupal_install_schema('tweetrss');
+}
+
+
+/**
+ * Implements hook_uninstall()
+ */
+function tweetrss_uninstall() {
+  drupal_uninstall_schema('tweetrss');
+}
+
+
+/**
+ * Implements hook_schema()
+ */
+function tweetrss_schema() {
+  $schema['tweetrss_feed'] = array(
+    'description' => 'Record a list of tweetrss feeds.',
+    'fields' => array(
+      'tfid' => array(
+        'description' => 'The tweetrss feed identifier.',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'twitter_uid' => array(
+        'description' => 'Twitter user ID.',
+        'type' => 'numeric',
+        'not null' => TRUE,
+        'default' => 0,
+        'precision' => '20',
+        'scale' => '0',
+      ),
+      'fid' => array(
+        'description' => 'Feed ID from Aggregator module.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'feedtype' => array(
+        'description' => 'Feedtype - refers to the selected filter module.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'regex_match' => array(
+        'description' => 'Regex pattern to match.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'regex_replace' => array(
+        'description' => 'Regex replacement pattern.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'checked' => array(
+        'description' => 'Last feed item ID processed.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('tfid'),
+  );
+  return $schema;
+
+}
